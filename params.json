@@ -1,0 +1,17 @@
+{
+  "config": {
+    "cliqueUrl": "https://testnet-wallet.alephium.org"
+  },
+  "contracts": [
+    {
+      "path": "test.ral",
+      "initWith": [],
+      "calls": [
+        {
+          "name": "id",
+          "args": [1]
+        }
+      ]
+    }
+  ]
+}
