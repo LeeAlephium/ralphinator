@@ -1,17 +1,23 @@
 {
   "config": {
-    "cliqueUrl": "https://testnet-wallet.alephium.org"
+    "cliqueUrl": "http://127.0.0.1:12973"
   },
   "contracts": [
     {
-      "path": "test.ral",
-      "initWith": [],
-      "calls": [
-        {
-          "name": "id",
-          "args": [1]
-        }
-      ]
+      "path": "letter.ral",
+      "initWith": [
+        {"type": "ByteVec", "value": "#00" },
+        {"type": "Address", "value": "@000000000000000000000000000000000000000000000" },
+        {"type": "Address", "value": "@000000000000000000000000000000000000000000000" }
+      ],
+      "calls": []
+    },
+    {
+      "path": "mailman.ral",
+      "initWith": [
+        {"type": "ByteVec", "value": "#00" }
+      ],
+      "calls": []
     }
   ]
 }

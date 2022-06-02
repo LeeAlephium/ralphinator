@@ -18,15 +18,15 @@ try {
   process.exit(1);
 }
 
-const reportError = e => {
+const reportError = filename => e => {
   if (e instanceof Response) {
-    console.log(`Error: ${e.error.detail}`);
+    console.log(`Error: ${filename}: ${e.error.detail}`);
   } else {
     console.log(e);
   }
 }
 
-const makeCallsFromContract = ({ initWith, calls }) => contract => {
+const makeCallsFromContract = ({ path, initWith, calls }) => contract => {
   calls.forEach(({ name, args }) => {
     contract
       .test(client, name, {
@@ -35,13 +35,13 @@ const makeCallsFromContract = ({ initWith, calls }) => contract => {
         existingContracts: []
       })
       .then(r => console.log(r))
-      .catch(reportError)
+      .catch(reportError(path))
   })
 }
 
 contracts.forEach(({ path, initWith, calls }) => {
   Contract
-    .from(client, path)
+    .from(client, 'tmp.' + path)
     .then(makeCallsFromContract({ initWith, calls }))
-    .catch(reportError);
+    .catch(reportError(path));
 })

@@ -1,2 +1,16 @@
 #!/bin/sh
-node exec.mjs "$1"
+
+compile() {
+  cd contracts/
+  for i in *; do
+    m4 "$i" > "tmp.$i"
+  done
+
+  cd ../
+  node exec.mjs "$1"
+
+  cd contracts/
+  rm tmp.*
+}
+
+compile "$1"

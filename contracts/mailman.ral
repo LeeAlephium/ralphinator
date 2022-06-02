@@ -1,0 +1,21 @@
+include(./letter.ral)
+
+TxContract Mailman(cContractIdForLetter: ByteVec) {
+  event Sent(contractId: ByteVec, to: Address)
+
+  pub fn send(message: ByteVec, to: Address) -> () {
+    approveAlph!(txCaller!(0), 1000000000000000000)
+    let id = copyCreateContract!(
+      cContractIdForLetter,
+      encodeToByteVec!(
+        #00,
+        @171111111111111111111111111111111111111111111,
+        @171111111111111111111111111111111111111111111
+      )
+    )
+    let letter = Letter(id)
+    letter.write(message, to, callerAddress!())
+
+    emit Sent(id, to)
+  }
+}
