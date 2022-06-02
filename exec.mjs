@@ -27,6 +27,7 @@ const reportError = filename => e => {
 }
 
 const makeCallsFromContract = ({ path, initWith, calls }) => contract => {
+  console.log(contract);
   calls.forEach(({ name, args }) => {
     contract
       .test(client, name, {

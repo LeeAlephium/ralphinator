@@ -15,7 +15,7 @@
     {
       "path": "mailman.ral",
       "initWith": [
-        {"type": "ByteVec", "value": "#00" }
+        {"type": "ByteVec", "value": "#0011" }
       ],
       "calls": []
     }
