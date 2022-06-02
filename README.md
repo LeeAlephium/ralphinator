@@ -2,7 +2,7 @@
 
 `npm install`
 
-`npm exec params.json`
+`./ralph params.json`
 
 `params.json` format is simple:
 
