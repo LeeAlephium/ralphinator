@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 import { Client as WalletConnectClient, CLIENT_EVENTS } from '@walletconnect/client'
-import { NodeProvider, Contract } from '@alephium/web3';
+import { NodeProvider, Contract, Script } from '@alephium/web3';
 import AlephiumProvider from '@alephium/walletconnect-provider';
 
 const log = m => () => console.log(m)
@@ -13,7 +13,7 @@ const {
     chainGroup,
     networkId
   },
-  contracts
+  code
 } = JSON.parse(fs.readFileSync(paramsJson, 'utf-8'));
 
 const clique = new NodeProvider(baseUrl);
@@ -68,21 +68,33 @@ const makeCallsFromContract = ({ provider, signerAddresses, path, initWith, call
     .then((r) => console.log(r))
 }
 
+const executeScript = ({ provider, signerAddresses, path, initWith, calls }) => (contract) => {
+  const bytecode = contract.buildByteCodeToDeploy(initWith);
+  return provider
+    .signExecuteScriptTx({
+      signerAddress: signerAddresses[0].address,
+      bytecode,
+      initialAttoAlphAmount: '1000000000000000000',
+      submitTx: true
+    })
+    .then((r) => console.log(r))
+}
+
 try {
   walletconnectConnect((provider) => (accounts) => {
     console.log(accounts)
     if (accounts.length == 0) return;
 
-    const ps = Promise.all(
-      contracts.map(({ path, initWith, calls }) =>
-        Contract
-          .fromSource(clique, 'tmp.' + path)
-          .then(makeCallsFromContract({ provider, signerAddresses: accounts, path, initWith, calls }))
-          .catch(reportError(path))
-      )
-    );
+    const actions = code.reduce((acc, meta) =>
+      acc.then(() => {
+        const aux = { provider, signerAddresses: accounts, ...meta};
+        return meta.type === "contract"
+          ? Contract.fromSource(clique, 'tmp.' + aux.path).then(makeCallsFromContract(aux))
+          : Script.fromSource(clique, 'tmp.' + aux.path).then(executeScript(aux));
+      })
+    , Promise.resolve())
 
-    ps.then(() => process.exit(0));
+    actions.then(() => process.exit(0));
   });
 } catch (e) {
   console.log(e);

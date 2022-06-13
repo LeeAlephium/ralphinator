@@ -4,8 +4,9 @@
     "networkId": "4",
     "chainGroup": 0
   },
-  "contracts": [
+  "code": [
     {
+      "type": "contract",
       "path": "Invoice.ral",
       "initWith": {
         "payTo": "14kSoi8pFMn2wMJFZJgGpFSA7GyNMtwWKnsKc1KidZ8Bu",
@@ -15,6 +16,12 @@
         "receiptOwner": "14kSoi8pFMn2wMJFZJgGpFSA7GyNMtwWKnsKc1KidZ8Bu",
         "identifier": "#1334114"
       },
+      "calls": []
+    },
+    {
+      "type": "script",
+      "path": "Test.ral",
+      "initWith": {},
       "calls": []
     }
   ]
