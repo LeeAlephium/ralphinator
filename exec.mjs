@@ -1,22 +1,52 @@
 import fs from 'fs';
-import { CliqueClient, Contract } from '@alephium/sdk';
+
+import { Client as WalletConnectClient, CLIENT_EVENTS } from '@walletconnect/client'
+import { NodeProvider, Contract } from '@alephium/web3';
+import AlephiumProvider from '@alephium/walletconnect-provider';
+
+const log = m => () => console.log(m)
 
 const [paramsJson] = process.argv.slice(2)
 const {
   config: {
-    cliqueUrl: baseUrl
+    cliqueUrl: baseUrl,
+    chainGroup,
+    networkId
   },
   contracts
 } = JSON.parse(fs.readFileSync(paramsJson, 'utf-8'));
 
-const client = new CliqueClient({ baseUrl });
+const clique = new NodeProvider(baseUrl);
 
-try {
-  await client.init(false);
-} catch(e) {
-  console.log(e);
-  process.exit(1);
-}
+const walletconnectConnect = (callbackConnected) =>
+  WalletConnectClient.init({
+    controller: false,
+    projectId: '28dbf304b7002ca40792ae54b0758bea',
+    relayUrl: 'wss://relay.walletconnect.com',
+    metadata: {
+      name: 'Ralphinator',
+      description: 'Ralph compilation build tool',
+      url: 'https://github.com/LeeAlephium/ralphinator',
+      icons: []
+    }
+  }).then((wc) => {
+    const provider = new AlephiumProvider.default({
+      chainGroup,
+      networkId,
+      client: wc
+    });
+
+    wc.on(CLIENT_EVENTS.session.deleted, log('deleted'))
+    wc.on(CLIENT_EVENTS.session.sync, log('synced'))
+    wc.on(CLIENT_EVENTS.pairing.proposal, (proposal) => {
+      const { uri } = proposal.signal.params;
+      console.log(uri);
+    })
+
+    provider
+      .connect()
+      .then(callbackConnected(provider))
+  });
 
 const reportError = filename => e => {
   if (e instanceof Response) {
@@ -26,23 +56,34 @@ const reportError = filename => e => {
   }
 }
 
-const makeCallsFromContract = ({ path, initWith, calls }) => contract => {
-  console.log(contract);
-  calls.forEach(({ name, args }) => {
-    contract
-      .test(client, name, {
-        initialFields: initWith,
-        testArgs: args,
-        existingContracts: []
-      })
-      .then(r => console.log(r))
-      .catch(reportError(path))
-  })
+const makeCallsFromContract = ({ provider, signerAddresses, path, initWith, calls }) => (contract) => {
+  const bytecode = contract.buildByteCodeToDeploy(initWith);
+  return provider
+    .signDeployContractTx({
+      signerAddress: signerAddresses[0].address,
+      bytecode,
+      initialAttoAlphAmount: '1000000000000000000',
+      submitTx: true
+    })
+    .then((r) => console.log(r))
 }
 
-contracts.forEach(({ path, initWith, calls }) => {
-  Contract
-    .from(client, 'tmp.' + path)
-    .then(makeCallsFromContract({ initWith, calls }))
-    .catch(reportError(path));
-})
+try {
+  walletconnectConnect((provider) => (accounts) => {
+    console.log(accounts)
+    if (accounts.length == 0) return;
+
+    const ps = Promise.all(
+      contracts.map(({ path, initWith, calls }) =>
+        Contract
+          .fromSource(clique, 'tmp.' + path)
+          .then(makeCallsFromContract({ provider, signerAddresses: accounts, path, initWith, calls }))
+          .catch(reportError(path))
+      )
+    );
+
+    ps.then(() => process.exit(0));
+  });
+} catch (e) {
+  console.log(e);
+}

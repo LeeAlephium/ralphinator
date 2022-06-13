@@ -1,22 +1,20 @@
 {
   "config": {
-    "cliqueUrl": "http://127.0.0.1:12973"
+    "cliqueUrl": "http://127.0.0.1:12973",
+    "networkId": "4",
+    "chainGroup": 0
   },
   "contracts": [
     {
-      "path": "letter.ral",
-      "initWith": [
-        {"type": "ByteVec", "value": "#00" },
-        {"type": "Address", "value": "@000000000000000000000000000000000000000000000" },
-        {"type": "Address", "value": "@000000000000000000000000000000000000000000000" }
-      ],
-      "calls": []
-    },
-    {
-      "path": "mailman.ral",
-      "initWith": [
-        {"type": "ByteVec", "value": "#0011" }
-      ],
+      "path": "Invoice.ral",
+      "initWith": {
+        "payTo": "14kSoi8pFMn2wMJFZJgGpFSA7GyNMtwWKnsKc1KidZ8Bu",
+        "paymentAmount": 5,
+        "paid": false,
+        "paidAt": 0,
+        "receiptOwner": "14kSoi8pFMn2wMJFZJgGpFSA7GyNMtwWKnsKc1KidZ8Bu",
+        "identifier": "#1334114"
+      },
       "calls": []
     }
   ]
